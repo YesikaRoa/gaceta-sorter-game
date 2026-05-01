@@ -57,7 +57,9 @@ export class GameEngine {
   }
 
   resume() {
+    if (!this.playing || !this.paused) return;
     this.paused  = false;
+    this._resumeFallingBlocks();
     this._scheduleSpawn();
     this._spawn(); // always spawn a new block after a modal
   }
@@ -116,6 +118,7 @@ export class GameEngine {
     el._speed = (1 + (this.level - 1) * 0.15) * 1.5;
     el._crime = crime;
     el._dragging = false;
+    el._falling = false;
 
     this.dropArea.appendChild(el);
     el.addEventListener('pointerdown', e => this._onDown(e, el));
@@ -123,8 +126,14 @@ export class GameEngine {
   }
 
   _fall(el) {
+    if (el._falling) return;
+    el._falling = true;
+
     const tick = () => {
-      if (!this.playing || this.paused || el._dragging || !el.isConnected) return;
+      if (!this.playing || this.paused || el._dragging || !el.isConnected) {
+        el._falling = false;
+        return;
+      }
       const areaH = this.dropArea.clientHeight;
       el._yPos += el._speed;
       el.style.top = `${el._yPos}px`;
@@ -136,6 +145,16 @@ export class GameEngine {
       el._raf = requestAnimationFrame(tick);
     };
     el._raf = requestAnimationFrame(tick);
+  }
+
+  _resumeFallingBlocks() {
+    if (!this.dropArea) return;
+    this.dropArea.querySelectorAll('.crime-block').forEach(el => {
+      if (el._dragging) return;
+      const currentTop = parseFloat(el.style.top);
+      if (!Number.isNaN(currentTop)) el._yPos = currentTop;
+      this._fall(el);
+    });
   }
 
   _onDown(e, el) {
