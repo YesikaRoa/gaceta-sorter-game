@@ -454,6 +454,33 @@ body {
 .go-stat-val { font-family: var(--font-head); font-size: 1.5rem; }
 .go-stat-label { font-size: .7rem; color: var(--text-dim); }
 
+/* Victory Modal */
+.modal-victory {
+  background: linear-gradient(145deg, #061410, #071a20);
+  border-color: var(--green);
+  box-shadow: 0 0 60px rgba(0,230,118,.12), 0 20px 60px rgba(0,0,0,.6);
+  text-align: center;
+}
+.victory-header {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: var(--green);
+  letter-spacing: .2em;
+  margin-bottom: .5rem;
+}
+.victory-title {
+  font-family: var(--font-head);
+  font-size: 2.5rem;
+  color: var(--cyan);
+  text-shadow: 0 0 24px rgba(0,229,255,.35);
+  margin-bottom: .5rem;
+}
+.victory-desc {
+  color: var(--text-dim);
+  font-size: .9rem;
+  margin-bottom: 2rem;
+}
+
 /* Pause Modal */
 .modal-pause {
   background: var(--bg2); border-color: var(--border);

@@ -1,6 +1,8 @@
 import { CRIMES, CATEGORY_NAMES } from './data.js';
 
 const MAX_LIVES = 3;
+const POINTS_PER_CORRECT = 1500;
+const WIN_SCORE = 15000;
 
 export class GameEngine {
   constructor(callbacks) {
@@ -12,6 +14,7 @@ export class GameEngine {
     this.wrong      = 0;
     this.playing    = false;
     this.paused     = false;
+    this.won        = false;
     this.spawnTimer = null;
     this.dragEl     = null;
     this.offsetX    = 0;
@@ -38,6 +41,7 @@ export class GameEngine {
     this.wrong   = 0;
     this.playing = true;
     this.paused  = false;
+    this.won     = false;
 
     this.dropArea.innerHTML = '';
     const hint = document.getElementById('drop-hint');
@@ -213,13 +217,34 @@ export class GameEngine {
   }
 
   _handleCorrect(crime, zone) {
-    this.score   += 1500 + (this.level - 1) * 200;
+    this.score   += POINTS_PER_CORRECT;
     this.correct += 1;
     const cnt = document.getElementById(`cnt-${crime.category}`);
     if (cnt) cnt.textContent = (parseInt(cnt.textContent) || 0) + 1;
     if (this.correct % 5 === 0) { this.level++; this._scheduleSpawn(); }
     this._updateHUD();
     this._flashZone(zone, 'success');
+    if (this.score >= WIN_SCORE) {
+      this._handleVictory();
+    }
+  }
+
+  _handleVictory() {
+    if (this.won) return;
+    this.won = true;
+    this.playing = false;
+    this.paused = true;
+    clearTimeout(this.spawnTimer);
+    if (this.dropArea) {
+      this.dropArea.querySelectorAll('.crime-block').forEach(el => {
+        cancelAnimationFrame(el._raf);
+        el.remove();
+      });
+    }
+    this.callbacks.onVictory({
+      score: this.score, correct: this.correct,
+      wrong: this.wrong, level: this.level
+    });
   }
 
   _handleWrong(crime, reason) {

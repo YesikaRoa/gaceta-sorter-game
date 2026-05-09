@@ -12,7 +12,8 @@ function hideModal(id)  { document.getElementById(id).classList.add('hidden'); }
 // ── Init Engine ──────────────────────────────────
 const engine = new GameEngine({
   onError(data) { showSancionModal(data); },
-  onGameOver(data) { showGameOver(data); }
+  onGameOver(data) { showGameOver(data); },
+  onVictory(data) { showVictory(data); }
 });
 
 // ── Menu Buttons ─────────────────────────────────
@@ -80,6 +81,16 @@ function showGameOver({ score, correct, wrong, level }) {
   showModal('modal-gameover');
 }
 
+function showVictory({ score, correct, wrong, level }) {
+  document.getElementById('victory-score').textContent = String(score).padStart(6, '0');
+  document.getElementById('victory-stats').innerHTML = `
+    <div class="go-stat"><div class="go-stat-val neon-green">${correct}</div><div class="go-stat-label">Correctos</div></div>
+    <div class="go-stat"><div class="go-stat-val neon-red">${wrong}</div><div class="go-stat-label">Errores</div></div>
+    <div class="go-stat"><div class="go-stat-val neon-yellow">${level}</div><div class="go-stat-label">Nivel alcanzado</div></div>
+  `;
+  showModal('modal-victory');
+}
+
 document.getElementById('btn-go-retry').addEventListener('click', () => {
   hideModal('modal-gameover');
   engine.start();
@@ -87,6 +98,17 @@ document.getElementById('btn-go-retry').addEventListener('click', () => {
 
 document.getElementById('btn-go-menu').addEventListener('click', () => {
   hideModal('modal-gameover');
+  engine.stop();
+  showScreen('screen-menu');
+});
+
+document.getElementById('btn-victory-retry').addEventListener('click', () => {
+  hideModal('modal-victory');
+  engine.start();
+});
+
+document.getElementById('btn-victory-menu').addEventListener('click', () => {
+  hideModal('modal-victory');
   engine.stop();
   showScreen('screen-menu');
 });
