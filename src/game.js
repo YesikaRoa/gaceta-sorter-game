@@ -2,7 +2,7 @@ import { CRIMES, CATEGORY_NAMES } from './data.js';
 
 const MAX_LIVES = 3;
 const POINTS_PER_CORRECT = 1500;
-const WIN_SCORE = 15000;
+const WIN_SCORE = 9000;
 
 export class GameEngine {
   constructor(callbacks) {
