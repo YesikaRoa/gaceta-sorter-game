@@ -3,6 +3,13 @@ import { CRIMES, CATEGORY_NAMES } from './data.js';
 const MAX_LIVES = 3;
 const POINTS_PER_CORRECT = 1500;
 const WIN_SCORE = 9000;
+const BASE_SPAWN_DELAY = 4200;
+const MIN_SPAWN_DELAY = 1400;
+const SPAWN_DELAY_STEP = 250;
+const BASE_FALL_SPEED = 0.82;
+const FALL_SPEED_STEP = 0.09;
+const RELEASE_PAUSE_MS = 2200;
+const RELEASE_MARGIN = 12;
 
 export class GameEngine {
   constructor(callbacks) {
@@ -26,6 +33,7 @@ export class GameEngine {
 
     window.addEventListener('pointermove', e => this._onMove(e));
     window.addEventListener('pointerup',   e => this._onUp(e));
+    window.addEventListener('pointercancel', e => this._onUp(e));
   }
 
   // ── PUBLIC ────────────────────────────────────────
@@ -75,6 +83,7 @@ export class GameEngine {
     if (this.dropArea) {
       this.dropArea.querySelectorAll('.crime-block').forEach(el => {
         cancelAnimationFrame(el._raf);
+        clearTimeout(el._resumeTimer);
         el.remove();
       });
     }
@@ -84,7 +93,7 @@ export class GameEngine {
   _scheduleSpawn() {
     clearTimeout(this.spawnTimer);
     if (!this.playing || this.paused) return;
-    const delay = Math.max(800, 3000 - (this.level - 1) * 200);
+    const delay = Math.max(MIN_SPAWN_DELAY, BASE_SPAWN_DELAY - (this.level - 1) * SPAWN_DELAY_STEP);
     this.spawnTimer = setTimeout(() => {
       if (this.playing && !this.paused) {
         this._spawn();
@@ -119,10 +128,12 @@ export class GameEngine {
     el.style.left = `${Math.max(0, Math.random() * (areaW - 250))}px`;
     el.style.top  = '-130px';
     el._yPos  = -130;
-    el._speed = (1 + (this.level - 1) * 0.15) * 1.5;
+    el._speed = BASE_FALL_SPEED + (this.level - 1) * FALL_SPEED_STEP;
     el._crime = crime;
     el._dragging = false;
     el._falling = false;
+    el._releasePaused = false;
+    el._resumeTimer = null;
 
     this.dropArea.appendChild(el);
     el.addEventListener('pointerdown', e => this._onDown(e, el));
@@ -134,7 +145,7 @@ export class GameEngine {
     el._falling = true;
 
     const tick = () => {
-      if (!this.playing || this.paused || el._dragging || !el.isConnected) {
+      if (!this.playing || this.paused || el._dragging || el._releasePaused || !el.isConnected) {
         el._falling = false;
         return;
       }
@@ -154,7 +165,7 @@ export class GameEngine {
   _resumeFallingBlocks() {
     if (!this.dropArea) return;
     this.dropArea.querySelectorAll('.crime-block').forEach(el => {
-      if (el._dragging) return;
+      if (el._dragging || el._releasePaused) return;
       const currentTop = parseFloat(el.style.top);
       if (!Number.isNaN(currentTop)) el._yPos = currentTop;
       this._fall(el);
@@ -165,8 +176,14 @@ export class GameEngine {
     if (!this.playing || this.paused) return;
     e.preventDefault();
     this.dragEl  = el;
+    if (el.setPointerCapture) {
+      try { el.setPointerCapture(e.pointerId); } catch {}
+    }
     el._dragging = true;
+    el._releasePaused = false;
+    clearTimeout(el._resumeTimer);
     cancelAnimationFrame(el._raf);
+    el._falling = false;
     el.classList.add('dragging');
     const r     = el.getBoundingClientRect();
     this.offsetX = e.clientX - r.left;
@@ -188,6 +205,9 @@ export class GameEngine {
     const el    = this.dragEl;
     const crime = el._crime;
     this.dragEl = null;
+    if (el.releasePointerCapture) {
+      try { el.releasePointerCapture(e.pointerId); } catch {}
+    }
     el.classList.remove('dragging');
     this.zones.forEach(z => z.classList.remove('drag-over'));
 
@@ -203,12 +223,32 @@ export class GameEngine {
           `Clasificado en "${CATEGORY_NAMES[hit.dataset.category]}" — incorrecto`);
       }
     } else {
-      // Resume falling from current position
-      el._dragging = false;
-      const ar = this.dropArea.getBoundingClientRect();
-      el._yPos = el.getBoundingClientRect().top - ar.top;
-      this._fall(el);
+      this._pauseThenResumeFall(el);
     }
+  }
+
+  _pauseThenResumeFall(el) {
+    if (!this.dropArea || !el.isConnected) return;
+
+    const ar = this.dropArea.getBoundingClientRect();
+    const blockRect = el.getBoundingClientRect();
+    const maxLeft = Math.max(RELEASE_MARGIN, ar.width - blockRect.width - RELEASE_MARGIN);
+    const maxTop = Math.max(RELEASE_MARGIN, ar.height - blockRect.height - RELEASE_MARGIN);
+
+    el._dragging = false;
+    el._releasePaused = true;
+    el._yPos = Math.min(Math.max(blockRect.top - ar.top, RELEASE_MARGIN), maxTop);
+
+    el.style.left = `${Math.min(Math.max(blockRect.left - ar.left, RELEASE_MARGIN), maxLeft)}px`;
+    el.style.top = `${el._yPos}px`;
+
+    clearTimeout(el._resumeTimer);
+    el._resumeTimer = setTimeout(() => {
+      el._releasePaused = false;
+      if (this.playing && !this.paused && el.isConnected) {
+        this._fall(el);
+      }
+    }, RELEASE_PAUSE_MS);
   }
 
   _hits(x, y, el) {
@@ -238,6 +278,7 @@ export class GameEngine {
     if (this.dropArea) {
       this.dropArea.querySelectorAll('.crime-block').forEach(el => {
         cancelAnimationFrame(el._raf);
+        clearTimeout(el._resumeTimer);
         el.remove();
       });
     }
