@@ -105,16 +105,10 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function showModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-function hideModal(id)  { document.getElementById(id).classList.add('hidden'); }
+function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-// ── Init Engine ──────────────────────────────────
 const engine = new GameEngine({
-<<<<<<< feature/modal-victoria
-  onError(data) { showSancionModal(data); },
-  onGameOver(data) { showGameOver(data); },
-  onVictory(data) { showVictory(data); }
-=======
   onError(data) {
     pauseGameplayMusic();
     showSancionModal(data);
@@ -122,11 +116,12 @@ const engine = new GameEngine({
   onGameOver(data) {
     pauseGameplayMusic();
     showGameOver(data);
+  },
+  onVictory(data) {
+    showVictory(data);
   }
->>>>>>> main
 });
 
-// ── Menu Buttons ─────────────────────────────────
 document.getElementById('btn-play').addEventListener('click', () => {
   prepareDefeatSfx();
   stopMenuMusic();
@@ -179,12 +174,12 @@ document.getElementById('btn-pause-menu').addEventListener('click', () => {
 // ── Sanción Modal ─────────────────────────────────
 function showSancionModal({ crime, reason }) {
   document.getElementById('modal-err-reason').textContent = reason;
-  document.getElementById('modal-err-code').textContent   = `ERR: 0x${crime.id.toUpperCase()}`;
+  document.getElementById('modal-err-code').textContent = `ERR: 0x${crime.id.toUpperCase()}`;
   document.getElementById('modal-crime-name').textContent = crime.title;
-  document.getElementById('modal-crime-cat').textContent  = `${CATEGORY_NAMES[crime.category]} · ${crime.chapter}`;
-  document.getElementById('modal-pena').textContent       = crime.penalty;
-  document.getElementById('modal-multa').textContent      = crime.fine;
-  document.getElementById('modal-article').textContent    = crime.article;
+  document.getElementById('modal-crime-cat').textContent = `${CATEGORY_NAMES[crime.category]} · ${crime.chapter}`;
+  document.getElementById('modal-pena').textContent = crime.penalty;
+  document.getElementById('modal-multa').textContent = crime.fine;
+  document.getElementById('modal-article').textContent = crime.article;
   showModal('modal-sancion');
 }
 
