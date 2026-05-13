@@ -10,6 +10,7 @@ const BASE_FALL_SPEED = 0.82;
 const FALL_SPEED_STEP = 0.09;
 const RELEASE_PAUSE_MS = 2200;
 const RELEASE_MARGIN = 12;
+const DRAG_EDGE_MARGIN = 8;
 
 export class GameEngine {
   constructor(callbacks) {
@@ -193,7 +194,11 @@ export class GameEngine {
   _onMove(e) {
     if (!this.dragEl || !this.dropArea) return;
     const ar = this.dropArea.getBoundingClientRect();
-    this.dragEl.style.left = `${e.clientX - ar.left - this.offsetX}px`;
+    const blockRect = this.dragEl.getBoundingClientRect();
+    const maxLeft = Math.max(DRAG_EDGE_MARGIN, ar.width - blockRect.width - DRAG_EDGE_MARGIN);
+    const nextLeft = e.clientX - ar.left - this.offsetX;
+
+    this.dragEl.style.left = `${Math.min(Math.max(nextLeft, DRAG_EDGE_MARGIN), maxLeft)}px`;
     this.dragEl.style.top  = `${e.clientY - ar.top  - this.offsetY}px`;
     this.zones.forEach(z =>
       z.classList.toggle('drag-over', this._hits(e.clientX, e.clientY, z))

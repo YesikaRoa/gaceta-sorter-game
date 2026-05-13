@@ -784,7 +784,6 @@ body {
   }
 
   .drop-area {
-    max-width: 90rem;
     width: 100%;
     align-self: center;
   }
