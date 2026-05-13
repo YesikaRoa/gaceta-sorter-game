@@ -699,6 +699,69 @@ body {
   .go-stats {
     flex-direction: column;
   }
+
+  .modal-victory {
+    padding-block: clamp(1rem, 4vw, 1.35rem);
+  }
+
+  .victory-trophy {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: .6rem;
+    font-size: 2.35rem;
+  }
+
+  .victory-header {
+    font-size: .56rem;
+    letter-spacing: .13em;
+  }
+
+  .victory-title {
+    font-size: clamp(1.55rem, 8vw, 2rem);
+    line-height: 1.05;
+  }
+
+  .victory-desc {
+    font-size: .82rem;
+    line-height: 1.45;
+    margin-bottom: 1rem;
+  }
+
+  .modal-victory .go-score-wrap {
+    margin-bottom: 1rem;
+  }
+
+  .modal-victory .go-score-val {
+    font-size: clamp(2rem, 12vw, 2.6rem);
+  }
+
+  #victory-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .55rem;
+    margin-bottom: 1rem;
+  }
+
+  #victory-stats .go-stat {
+    min-width: 0;
+  }
+
+  #victory-stats .go-stat-val {
+    font-size: 1.05rem;
+  }
+
+  #victory-stats .go-stat-label {
+    font-size: .58rem;
+    line-height: 1.25;
+  }
+
+  .modal-victory .modal-actions {
+    gap: .65rem;
+  }
+
+  .modal-victory .btn-neon {
+    width: 100%;
+  }
 }
 
 @media (min-width: 43rem) {
@@ -721,7 +784,6 @@ body {
   }
 
   .drop-area {
-    max-width: 90rem;
     width: 100%;
     align-self: center;
   }
